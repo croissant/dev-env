@@ -2,7 +2,7 @@ FROM debian:latest
 
 ENV GIT_VERSION 2.15.1
 ENV EMACS_VERSION 25.3
-ENV RUBY_VERSION 2.4.2
+ENV RUBY_VERSION 2.4.3
 ENV NODE_VERSION 8.9.3
 ENV PYTHON_VERSION 3.6.4
 
@@ -75,8 +75,18 @@ ADD phpenv/phpenv.sh /etc/profile.d/phpenv.sh
 ADD phpenv/default_configure_options phpenv/plugins/php-build/share/php-build/default_configure_options
 RUN . /etc/profile && phpenv install ${PHP_VERSION} && phpenv rehash && phpenv global ${PHP_VERSION}
 
+RUN mkdir /home/docker/bin
+RUN chown docker:docker /home/docker/bin
+RUN cd /home/docker/bin ; curl -O https://getcomposer.org/composer.phar
+RUN chmod 755 /home/docker/bin/composer.phar
+RUN ln -s /home/docker/bin/composer.phar /home/docker/bin/composer
+
 ADD supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 ADD supervisor/sshd.conf /etc/supervisor/conf.d/sshd.conf
+
+RUN echo 'export PATH=$PATH:$HOME/bin:$HOME/.composer/vendor/bin' >> /home/docker/.bashrc
+RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+RUN locale-gen
 
 EXPOSE 22
 
